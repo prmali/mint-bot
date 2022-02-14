@@ -1,0 +1,16 @@
+{
+	"name": "mint-bot",
+	"version": "1.0.0",
+	"main": "index.js",
+	"type": "module",
+	"repository": "https://github.com/prmali/mint-bot.git",
+	"author": "prathik <37804760+prmali@users.noreply.github.com>",
+	"license": "MIT",
+	"scripts": {
+		"start": "node index.js"
+	},
+	"dependencies": {
+		"dotenv": "^16.0.0",
+		"ethers": "^5.5.4"
+	}
+}
