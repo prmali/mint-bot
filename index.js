@@ -65,7 +65,7 @@ const mint = async (quantity, mintPrice) => {
 	);
 
 	const mintTxn = await contract.mintCosmicCats(quantity, {
-		value: ethers.utils.parseEther((quantity * mintPrice).toString()),
+		value: ethers.utils.parseEther(quantity * mintPrice),
 		gasPrice: ethers.utils.parseUnits(submittingPrice, "gwei"),
 	});
 	console.log("[SUBMITTED TXN]", mintTxn);
@@ -80,7 +80,5 @@ const main = async (quantity, mintPrice) => {
 
 	mint(quantity, mintPrice);
 };
-
-//grabSaleState();
 
 main(1, 0.04);
