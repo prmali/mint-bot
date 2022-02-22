@@ -1,25 +1,31 @@
 import ethers from "ethers";
 import "dotenv/config";
+
 const privateKey = process.env.PRIVATE_KEY;
 const alchemyApiKey = process.env.ALCHEMY_API_KEY;
-const contractAddress = "0xc657c2a3bd558716b3f6b843ef09c0fc628e4977";
+
+const contractAddress = "";
+
+const isSaleActiveName = "publicSaleIsOpen";
+const mintFunctionName = "publicSaleMint";
+
 const abi = [
 	{
 		inputs: [
 			{
 				internalType: "uint256",
-				name: "_amount",
+				name: "count",
 				type: "uint256",
 			},
 		],
-		name: "mintCosmicCats",
+		name: mintFunctionName,
 		outputs: [],
 		stateMutability: "payable",
 		type: "function",
 	},
 	{
 		inputs: [],
-		name: "saleActive",
+		name: isSaleActiveName,
 		outputs: [
 			{
 				internalType: "bool",
@@ -31,27 +37,25 @@ const abi = [
 		type: "function",
 	},
 ];
-/* const provider = ethers.providers.getDefaultProvider(); */
-/* const provider = new ethers.providers.JsonRpcProvider(
-	"https://polygon-rpc.com/"
-); */
+
 const provider = new ethers.providers.AlchemyProvider(null, alchemyApiKey);
 const wallet = new ethers.Wallet(privateKey, provider);
 const contract = new ethers.Contract(contractAddress, abi, wallet);
-
 const timer = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const grabSaleState = async () => {
-	const saleState = await contract.saleActive();
-	console.log("[saleActive]", saleState);
+	const saleState = await contract[isSaleActiveName]();
+	console.log(`[${isSaleActiveName}]`, saleState);
 
 	return saleState;
 };
 
 const mint = async (quantity, mintPrice) => {
-	console.log("ATTEMPTING MINT");
+	const gasMultiplier = 2;
 	const gasPrice = await provider.getGasPrice();
-	const submittingPrice = gasPrice.mul(2);
+	const submittingPrice = gasPrice.add(
+		gasPrice.div(ethers.BigNumber.from(gasMultiplier.toString()))
+	);
 
 	console.log(
 		"[CURRENT NETWORK GAS]",
@@ -63,11 +67,13 @@ const mint = async (quantity, mintPrice) => {
 		ethers.utils.formatUnits(submittingPrice, "gwei"),
 		"gwei"
 	);
+	console.log("[SENDING TXN]");
 
-	const mintTxn = await contract.mintCosmicCats(quantity, {
-		value: ethers.utils.parseEther(quantity * mintPrice),
-		gasPrice: ethers.utils.parseUnits(submittingPrice, "gwei"),
+	const mintTxn = await contract[mintFunctionName](quantity, {
+		value: ethers.utils.parseEther((quantity * mintPrice).toString()),
+		gasPrice: submittingPrice,
 	});
+
 	console.log("[SUBMITTED TXN]", mintTxn);
 	await mintTxn.wait();
 	console.log("[PROCESSED TXN]", mintTxn);
